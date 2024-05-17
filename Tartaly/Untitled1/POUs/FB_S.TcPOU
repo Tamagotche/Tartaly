@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_S" Id="{bc0c4985-e852-4aab-b4a9-dbc3ff35f74d}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_S
+VAR_INPUT
+
+END_VAR
+VAR_OUTPUT
+	bValve				:BOOL;
+END_VAR
+VAR
+	bValveOpen			:BOOL;	//SB Testing TRUE
+	bValveClosed		:BOOL;	//SK
+	bPrevOpen			:BOOL;
+	bPrevClosed			:BOOL;	
+
+	//on/off buttons or every 90 sec for 30sec if tank not empty
+	nState				:UDINT := 0; //0: Default, 20: Autorun 40: Manual
+	myTimer				:TON;
+	tCurrentTime		:TIME;
+	bTemp				:BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE nState OF
+	0: //Scanning for Errors
+		IF GVL.bHeatRelay OR GVL.bTankEmpty THEN
+			//Error log
+			bValve := FALSE;
+			nState := 0;		//Stay in standby state 0
+		ELSE
+			nState := 20;
+		END_IF
+	20:	//Auto Closed
+		IF GVL.bManualValve THEN
+			nState := 60;
+		END_IF;
+		tCurrentTime := GVL.tValveOffTimer;
+		bValve := FALSE;
+		IF myTimer.Q THEN
+			nState := 40;	
+			myTimer(IN := FALSE);
+		END_IF
+	40: //Auto Open
+		IF GVL.bManualValve THEN
+			nState := 60;
+		END_IF;
+		tCurrentTime := GVL.tValveOnTimer;
+		bValve := TRUE;
+		IF myTimer.Q THEN
+			nState := 0;
+			myTimer(IN := FALSE);
+		END_IF
+		
+	60:
+		IF (bValveOpen AND NOT bPrevOpen) THEN
+			bValveClosed:=FALSE;
+			bValve := TRUE;
+		ELSIF (BValveClosed AND NOT bPrevClosed) THEN
+			BValveOpen:=FALSE;
+			bValve := FALSE;		
+		END_IF
+		
+		bPrevOpen := bValveOpen;
+		bPrevClosed := bValveClosed;		
+		
+		IF NOT GVL.bManualValve THEN
+			nState := 0;
+		ELSE
+			nState := 60;
+		END_IF
+END_CASE
+
+myTimer(IN:=TRUE, PT:=tCurrentTime);
+myTimer(IN:=TRUE, PT:=tCurrentTime);
+]]></ST>
+    </Implementation>
+    <LineIds Name="FB_S">
+      <LineId Id="32" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="138" Count="0" />
+      <LineId Id="46" Count="2" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="133" Count="1" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="76" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="136" Count="1" />
+      <LineId Id="135" Count="0" />
+      <LineId Id="99" Count="1" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="102" Count="0" />
+      <LineId Id="129" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="189" Count="0" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="182" Count="0" />
+      <LineId Id="188" Count="0" />
+      <LineId Id="184" Count="0" />
+      <LineId Id="94" Count="0" />
+      <LineId Id="185" Count="2" />
+      <LineId Id="112" Count="2" />
+      <LineId Id="158" Count="1" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="83" Count="1" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="29" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

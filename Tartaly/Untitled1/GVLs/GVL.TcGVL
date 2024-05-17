@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <GVL Name="GVL" Id="{e9e1fe0c-09c6-4990-b9f9-04a433fc3c14}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+	tValveOffTimer		:TIME := T#10S;
+	tValveOnTimer		:TIME := T#5S;
+	
+END_VAR
+VAR_GLOBAL
+	//Sensors
+	bLowSensor			:BOOL := TRUE;	//LV, 
+	bHighSensor			:BOOL;			//HV
+	bHeatRelay			:BOOL; 			//TH
+	bTankEmpty			:BOOL;			//UT
+	
+	//Manual Input Switch
+	bManualMotor				:BOOL;
+	bManualValve				:BOOL;
+
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

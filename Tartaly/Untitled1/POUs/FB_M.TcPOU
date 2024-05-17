@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_M" Id="{70fc4ff4-6671-4c43-b7fa-ce232cf59183}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_M
+VAR_INPUT	
+END_VAR
+VAR_OUTPUT
+	bMotor				:BOOL;			//KM
+END_VAR
+VAR
+	bMotorOnButton		:BOOL;			//MB
+	bMotorOffButton		:BOOL;			//MK
+	bPrevOn				:BOOL;
+	bPrevOff			:BOOL;
+
+	nState				:UDINT:=0;		//0:Default, 20:Autorun, 40:Manual
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE nState OF
+	0:	//Stand by
+		IF NOT GVL.bHeatRelay AND NOT GVL.bHighSensor THEN
+			IF	GVL.bLowSensor THEN
+				nState := 20;
+			ELSIF GVL.bManualMotor THEN
+				nState := 40;
+			ELSE
+				nState := 0;
+				bMotor := 0;
+			END_IF
+		ELSE
+			bMotor := FALSE;
+			nState := 0;	
+		END_IF
+			
+	20:
+		bMotor := TRUE;
+		
+		IF GVL.bManualMotor THEN
+			nState := 40;
+		ELSE
+			nState := 0;
+		END_IF
+	
+	40:
+		IF (bMotorOnButton AND NOT bPrevOn) THEN
+			bMotorOffButton:=FALSE;
+			bMotor := TRUE;
+		ELSIF (bMotorOffButton AND NOT bPrevOff) THEN
+			bMotorOnButton:=FALSE;
+			bMotor := FALSE;		
+		END_IF
+		
+		bPrevOn := bMotorOnButton;
+		bPrevOff := bMotorOffButton;
+		
+		IF NOT GVL.bManualMotor THEN
+			nState := 0;
+		ELSE
+			nState := 40;
+		END_IF
+		
+		//state visszavezetés
+	
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="FB_M">
+      <LineId Id="43" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="94" Count="0" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="103" Count="1" />
+      <LineId Id="125" Count="2" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="124" Count="0" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="58" Count="3" />
+      <LineId Id="63" Count="1" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="49" Count="1" />
+      <LineId Id="211" Count="8" />
+      <LineId Id="161" Count="0" />
+      <LineId Id="144" Count="0" />
+      <LineId Id="179" Count="1" />
+      <LineId Id="198" Count="1" />
+      <LineId Id="178" Count="0" />
+      <LineId Id="139" Count="0" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="46" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
